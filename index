@@ -1,0 +1,1223 @@
+# Let's create an updated single-file HTML file with the requested feature:
+# "按照六大核心素養分成分頁"
+# Let's make sure the interactive web game organizes questions, study content, and assessment by the 6 core dimensions!
+# The user wants the web interactive game to have tabs for the 6 core competencies / dimensions, or organize the questions/learning by the 6 dimensions!
+
+html_code = """<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>植物大冒險：多采多姿的植物（六大核心素養互動闖關）</title>
+  <style>
+    :root {
+      --primary: #2d8a4e;
+      --primary-dark: #1b5e20;
+      --primary-light: #e8f5e9;
+      --secondary: #ff9800;
+      --accent: #00897b;
+      --text: #2c3e50;
+      --bg: #f0f7f4;
+      --card: #ffffff;
+      --correct: #2e7d32;
+      --wrong: #c62828;
+      --border: #c8e6c9;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans TC', system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); line-height: 1.6; padding-bottom: 80px; }
+    
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #2d8a4e, #388e3c);
+      color: white;
+      text-align: center;
+      padding: 26px 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    header h1 { font-size: 1.85rem; margin-bottom: 6px; letter-spacing: 1px; }
+    header p { font-size: 1.05rem; opacity: 0.95; }
+
+    /* Top Mode Navigation */
+    .top-nav {
+      display: flex;
+      justify-content: center;
+      background: #ffffff;
+      border-bottom: 2px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .top-tab-btn {
+      padding: 14px 22px;
+      border: none;
+      background: transparent;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-bottom: 4px solid transparent;
+    }
+    .top-tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: #fafdfb;
+    }
+
+    /* Sub Tabs for 6 Core Dimensions */
+    .dimension-tabs-container {
+      background: #e8f5e9;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dimension-tabs {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+    }
+    .dim-tab-btn {
+      white-space: nowrap;
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1.5px solid #a5d6a7;
+      background: #ffffff;
+      color: #2e7d32;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .dim-tab-btn:hover { background: #c8e6c9; }
+    .dim-tab-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary-dark);
+      box-shadow: 0 2px 6px rgba(46,125,50,0.3);
+    }
+    .dim-badge {
+      background: rgba(0,0,0,0.12);
+      border-radius: 12px;
+      padding: 1px 7px;
+      font-size: 0.8rem;
+    }
+    .dim-tab-btn.active .dim-badge { background: rgba(255,255,255,0.3); color: white; }
+
+    /* Main Container */
+    .container {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 0 16px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+
+    /* Dimension Header Banner */
+    .dim-banner {
+      background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+      border-left: 6px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .dim-banner h2 { font-size: 1.3rem; color: var(--primary-dark); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .dim-banner p { font-size: 0.98rem; color: #444; }
+
+    /* Status Bar */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9fbe7;
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: 1px solid #dce775;
+      margin-bottom: 18px;
+      font-weight: 600;
+      color: #33691e;
+    }
+
+    /* Question Card Styling */
+    .q-item {
+      background: #ffffff;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      transition: border-color 0.2s;
+    }
+    .q-item.correct-answered { border-color: #81c784; background: #fafdfa; }
+    .q-item.wrong-answered { border-color: #ef9a9a; background: #fffdfd; }
+
+    .q-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+      gap: 10px;
+    }
+    .q-num {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+    .q-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #2c3e50;
+      flex-grow: 1;
+      line-height: 1.45;
+    }
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .opt-btn {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 1.02rem;
+      border-radius: 10px;
+      border: 1.5px solid #e0e0e0;
+      background: #ffffff;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      line-height: 1.4;
+      color: #333;
+    }
+    .opt-btn:hover:not(:disabled) {
+      border-color: #81c784;
+      background: #f1f8e9;
+    }
+    .opt-btn.correct {
+      background: #e8f5e9 !important;
+      border-color: var(--correct) !important;
+      color: var(--correct) !important;
+      font-weight: bold;
+    }
+    .opt-btn.wrong {
+      background: #ffebee !important;
+      border-color: var(--wrong) !important;
+      color: var(--wrong) !important;
+      font-weight: bold;
+    }
+
+    /* Explanation */
+    .explain-box {
+      margin-top: 12px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: #fffde7;
+      border-left: 5px solid #fbc02d;
+      font-size: 0.96rem;
+      color: #5d4037;
+      line-height: 1.5;
+    }
+
+    /* Case Group Intro */
+    .case-box {
+      background: #e0f2f1;
+      border-radius: 12px;
+      border-left: 6px solid var(--accent);
+      padding: 18px;
+      margin-bottom: 22px;
+    }
+    .case-box h3 { color: #00695c; font-size: 1.2rem; margin-bottom: 8px; }
+    .case-box p { font-size: 1.02rem; line-height: 1.6; color: #1f3833; }
+
+    /* Visual Encyclopedia */
+    .ency-visual-card {
+      background: #ffffff;
+      border-radius: 14px;
+      border: 1.5px solid var(--border);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    }
+    .ency-visual-card h3 {
+      font-size: 1.25rem;
+      color: var(--primary-dark);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 6px;
+      border-bottom: 2px dashed #a5d6a7;
+    }
+    .ency-svg-wrap {
+      background: #fbfdfb;
+      border-radius: 10px;
+      border: 1px solid #e8f5e9;
+      padding: 12px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .ency-svg-wrap svg {
+      max-width: 100%;
+      height: auto;
+      max-height: 220px;
+    }
+    .ency-keypoints {
+      background: #fafafa;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 0.98rem;
+      border: 1px solid #eeeeee;
+    }
+    .ency-keypoints ul { margin-left: 20px; }
+    .ency-keypoints li { margin-bottom: 6px; }
+
+    /* Assessment Dashboard */
+    .report-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      border: 2px solid var(--border);
+    }
+    .badge-hero {
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+      border-radius: 14px;
+      margin-bottom: 24px;
+    }
+    .badge-icon { font-size: 3.5rem; margin-bottom: 8px; }
+    .badge-title { font-size: 1.6rem; color: var(--primary-dark); font-weight: bold; margin-bottom: 4px; }
+    .badge-score { font-size: 1.2rem; color: #2e7d32; font-weight: bold; }
+
+    .dim-progress-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .dim-progress-card {
+      background: #f9fbf9;
+      border: 1px solid #c8e6c9;
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .dim-p-title { font-weight: bold; font-size: 1rem; color: #1b5e20; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .dim-bar-wrap { background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 6px; }
+    .dim-bar-inner { height: 100%; background: var(--primary); transition: width 0.4s; }
+    .dim-status-txt { font-size: 0.85rem; color: #555; }
+
+    /* Action buttons */
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--primary-dark); }
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+    }
+    .btn-outline:hover { background: var(--primary-light); }
+
+    /* Utility */
+    .hidden { display: none !important; }
+    @media (max-width: 600px) {
+      .top-tab-btn { padding: 12px 14px; font-size: 0.95rem; }
+      header h1 { font-size: 1.45rem; }
+      .card { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 植物大冒險：多采多姿的植物</h1>
+  <p>國小三年級自然上學期第一單元・六大核心素養互動探究題庫</p>
+</header>
+
+<!-- 主選單：分頁切換 -->
+<nav class="top-nav">
+  <button class="top-tab-btn active" onclick="switchMainMode('dimension')">📂 核心素養分頁專區</button>
+  <button class="top-tab-btn" onclick="switchMainMode('allq')">📝 50題全部檢視</button>
+  <button class="top-tab-btn" onclick="switchMainMode('report')">📊 素養評估報告</button>
+</nav>
+
+<!-- 六大核心素養次分頁按鈕列 -->
+<div class="dimension-tabs-container" id="dim-tabs-wrapper">
+  <div class="dimension-tabs">
+    <button class="dim-tab-btn active" onclick="switchDimension(1)">
+      <span>🌿 1. 自然界與身體構造</span>
+      <span class="dim-badge" id="badge-d1">0/8</span>
+    </button>
+    <button class="dim-tab-btn" onclick="switchDimension(2)">
+      <span>🍃 2. 葉片特徵與葉序</span>
+      <span class="dim-badge" id="badge-d2">0/9</span>
+    </button>
+    <button class="dim-tab-btn" onclick="switchDimension(3)">
+      <span>🪵 3. 莖的形態分類</span>
+      <span class="dim-badge" id="badge-d3">0/8</span>
+    </button>
+    <button class="dim-tab-btn" onclick="switchDimension(4)">
+      <span>🥕 4. 根系特徵與吸水</span>
+      <span class="dim-badge" id="badge-d4">0/8</span>
+    </button>
+    <button class="dim-tab-btn" onclick="switchDimension(5)">
+      <span>🌸 5. 花朵構造與繁衍</span>
+      <span class="dim-badge" id="badge-d5">0/8</span>
+    </button>
+    <button class="dim-tab-btn" onclick="switchDimension(6)">
+      <span>🍽️ 6. 生活應用與閱讀</span>
+      <span class="dim-badge" id="badge-d6">0/9</span>
+    </button>
+  </div>
+</div>
+
+<main class="container">
+  
+  <!-- 六大核心素養分頁顯示模式 -->
+  <section id="mode-dimension">
+    <div class="dim-banner" id="dim-banner">
+      <!-- 動態載入當前素養向度的介紹 -->
+    </div>
+
+    <!-- 該素養的圖像化知識卡片 (植物百寶箱) -->
+    <div class="ency-visual-card" id="dim-visual-card">
+      <!-- 動態載入該向度的 SVG 與解剖圖鑑 -->
+    </div>
+
+    <!-- 該素養專屬題組 (情境題) -->
+    <div class="case-box" id="dim-case-box">
+      <!-- 動態載入該向度的素養情境題組 -->
+    </div>
+
+    <!-- 該素養下的單元測驗題 -->
+    <div class="card">
+      <div class="status-bar">
+        <span id="dim-q-count">單元題目進度：0 / 0</span>
+        <span id="dim-score-badge">素養向度得分：0 分</span>
+      </div>
+      <div id="dim-questions-list">
+        <!-- 動態載入該向度的選擇題清單 -->
+      </div>
+      <div style="text-align:center; margin-top:20px;">
+        <button class="btn" onclick="nextDimensionTab()">下一項素養向度 ➡</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 全部50題綜合檢視模式 -->
+  <section id="mode-allq" class="hidden">
+    <div class="card">
+      <div class="status-bar">
+        <span id="all-progress">總進度：0 / 50 題</span>
+        <span id="all-score">總得分：0 / 100 分</span>
+      </div>
+      <div id="all-questions-list"></div>
+    </div>
+  </section>
+
+  <!-- 學習成效與多向度評估診斷報告 -->
+  <section id="mode-report" class="hidden">
+    <div class="report-card">
+      <div class="badge-hero">
+        <div class="badge-icon" id="hero-badge-icon">🌱</div>
+        <div class="badge-title" id="hero-badge-title">植物見習小種子</div>
+        <div class="badge-score" id="hero-badge-score">總分：0 分（答對 0 / 50 題）</div>
+        <p style="margin-top:6px; color:#555;" id="hero-badge-desc">請開始作答題目，系統將依據您的答題表現進行六大核心素養雷達診斷！</p>
+      </div>
+
+      <h3 style="color:var(--primary-dark); margin-bottom:14px;">📈 六大核心素養能力診斷分析</h3>
+      <div class="dim-progress-grid" id="dim-report-grid"></div>
+
+      <div style="background:#f1f8e9; padding:18px; border-radius:12px; margin-bottom:24px; border:1px solid #c8e6c9;">
+        <h4 style="color:#2e7d32; margin-bottom:8px;">💡 學習導師專屬叮嚀與複習建議</h4>
+        <div id="learning-advice" style="color:#444; line-height:1.6;">尚未完成足夠題數，快進入各素養分頁挑戰闖關吧！</div>
+      </div>
+
+      <div id="wrong-summary-box">
+        <h3 style="color:var(--wrong); margin-bottom:12px;">🔍 待加強與錯題檢討清單</h3>
+        <div id="wrong-list-container">無錯題或尚未作答。</div>
+      </div>
+
+      <div style="display:flex; justify-content:center; gap:16px; margin-top:26px;">
+        <button class="btn" onclick="resetAllQuiz()">🔄 重新測驗</button>
+        <button class="btn btn-outline" onclick="window.print()">🖨️ 列印/匯出成效報告</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// 音效模組
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playBeep(freq, type, duration) {
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+    osc.stop(audioCtx.currentTime + duration);
+  } catch(e) {}
+}
+function soundCorrect() {
+  playBeep(523.25, 'sine', 0.15);
+  setTimeout(() => playBeep(659.25, 'sine', 0.22), 100);
+}
+function soundWrong() {
+  playBeep(220, 'square', 0.25);
+}
+
+// 六大核心素養定義與圖解
+const dimensionsData = {
+  1: {
+    id: 1,
+    name: "自然界與身體構造",
+    icon: "🌿",
+    desc: "認識生物與非生物的區別，掌握植物身體的根、莖、葉、花、果實、種子六大構造與其基本生命特徵。",
+    svg: `
+      <svg viewBox="0 0 400 180" style="max-width:380px;">
+        <!-- 植物構造圖解 -->
+        <rect x="0" y="140" width="400" height="40" fill="#d7ccc8"/>
+        <!-- 根 -->
+        <path d="M200,140 Q180,165 170,175 M200,140 Q220,165 230,175 M200,140 L200,178" stroke="#8d6e63" stroke-width="3" fill="none"/>
+        <text x="240" y="165" font-size="12" fill="#5d4037" font-weight="bold">地下：根（固定吸收）</text>
+        <!-- 莖 -->
+        <line x1="200" y1="140" x2="200" y2="45" stroke="#4caf50" stroke-width="6"/>
+        <text x="215" y="95" font-size="12" fill="#2e7d32" font-weight="bold">地上：莖（支撐輸送）</text>
+        <!-- 葉 -->
+        <path d="M200,110 Q150,90 140,110 Q170,125 200,110 Z" fill="#81c784" stroke="#2e7d32" stroke-width="1.5"/>
+        <text x="80" y="112" font-size="12" fill="#2e7d32" font-weight="bold">葉（照光製養）</text>
+        <path d="M200,80 Q250,60 260,80 Q230,95 200,80 Z" fill="#81c784" stroke="#2e7d32" stroke-width="1.5"/>
+        <!-- 花 -->
+        <circle cx="200" cy="45" r="8" fill="#fbc02d"/>
+        <ellipse cx="200" cy="30" rx="7" ry="12" fill="#f06292"/>
+        <ellipse cx="200" cy="60" rx="7" ry="12" fill="#f06292"/>
+        <ellipse cx="185" cy="45" rx="12" ry="7" fill="#f06292"/>
+        <ellipse cx="215" cy="45" rx="12" ry="7" fill="#f06292"/>
+        <text x="235" y="45" font-size="12" fill="#c2185b" font-weight="bold">花、果實、種子（繁衍）</text>
+      </svg>
+    `,
+    keypoints: [
+      "自然界分為「生物」（有生命、會生長繁殖）與「非生物」（如石頭、鐵椅）。",
+      "植物有生命但不會隨處走動；植物六大構造為：根、莖、葉、花、果實和種子。",
+      "安全守則：觀察植物時不採摘、不食用，遇到有刺或乳汁植物不可直接碰觸。"
+    ],
+    caseTitle: "素養題組一：校園植物大搜查",
+    caseStory: "小晴和小翔拿著自然紀錄板在校園花圃走動，記下了：A.白頭翁、B.鐵椅子、C.樟樹、D.大鳳蝶、E.花圃石頭、F.長春花。回到教室後，自然老師請全班進行分類歸納。",
+    caseQ: [
+      { q: "在這六樣名單中，哪些屬於具有生命現象的「生物」？", opts: ["只有 B、E", "只有 A、D", "A、C、D、F", "B、C、E、F"], a: 2, e: "白頭翁、大鳳蝶（動物）與樟樹、長春花（植物）會生長、繁衍後代，屬於生物。" },
+      { q: "在生物中，想將牠們分為「動物」與「植物」，最合理的科學依據是什麼？", opts: ["植物會自己走動，動物固定不動", "植物大多固定在土中能靠光照製造養分，動物會自由移動且需攝食", "植物有羽毛，動物有葉子", "植物沒有生命，動物有生命"], a: 1, e: "植物固著生活且能靠葉片光合作用自製養分；動物具運動能力且需進食現成食物。" },
+      { q: "觀察長春花時，在地面上看到了莖、葉、花和果實，那它的「根」為什麼沒看到？", opts: ["長春花根本沒有根", "長春花的根深埋在土壤中吸收水分與固定植株", "長春花的根在開花時會融化", "長春花的根長在花瓣裡面"], a: 1, e: "大部分植物的根生長在地下土壤中，負責抓緊土壤並吸收水分與養分。" }
+    ],
+    qIndices: [0, 1, 2, 3, 46, 47, 48, 49] // 對應50題的題目索引
+  },
+  2: {
+    id: 2,
+    name: "葉片特徵與葉序爭光",
+    icon: "🍃",
+    desc: "探究平行脈與網狀脈、平滑與鋸齒葉緣，以及互生、對生、輪生的葉序生長規律如何幫助植物爭取最多陽光。",
+    svg: `
+      <svg viewBox="0 0 420 160" style="max-width:400px;">
+        <!-- 平行脈 -->
+        <g transform="translate(10,10)">
+          <path d="M30,130 Q55,20 80,130 Z" fill="#c8e6c9" stroke="#2e7d32" stroke-width="2"/>
+          <line x1="55" y1="25" x2="55" y2="130" stroke="#388e3c" stroke-width="2"/>
+          <line x1="42" y1="50" x2="42" y2="130" stroke="#388e3c" stroke-width="1.5"/>
+          <line x1="68" y1="50" x2="68" y2="130" stroke="#388e3c" stroke-width="1.5"/>
+          <text x="18" y="148" font-size="11" fill="#1b5e20" font-weight="bold">平行脈 (百合/水稻)</text>
+        </g>
+        <!-- 網狀脈 -->
+        <g transform="translate(125,10)">
+          <path d="M10,80 C10,25 70,25 70,80 C70,135 10,135 10,80 Z" fill="#a5d6a7" stroke="#2e7d32" stroke-width="2"/>
+          <line x1="10" y1="80" x2="70" y2="80" stroke="#1b5e20" stroke-width="2"/>
+          <path d="M30,80 L45,55 M30,80 L45,105 M50,80 L62,60 M50,80 L62,100" stroke="#2e7d32" stroke-width="1.5"/>
+          <text x="5" y="148" font-size="11" fill="#1b5e20" font-weight="bold">網狀脈 (桂花/樟樹)</text>
+        </g>
+        <!-- 葉序 -->
+        <g transform="translate(240,10)">
+          <line x1="40" y1="20" x2="40" y2="130" stroke="#795548" stroke-width="3"/>
+          <ellipse cx="55" cy="50" rx="12" ry="5" fill="#81c784"/>
+          <ellipse cx="25" cy="80" rx="12" ry="5" fill="#81c784"/>
+          <ellipse cx="55" cy="110" rx="12" ry="5" fill="#81c784"/>
+          <text x="15" y="148" font-size="10" fill="#3e2723">互生(節長1片)</text>
+
+          <line x1="110" y1="20" x2="110" y2="130" stroke="#795548" stroke-width="3"/>
+          <ellipse cx="96" cy="60" rx="11" ry="5" fill="#66bb6a"/>
+          <ellipse cx="124" cy="60" rx="11" ry="5" fill="#66bb6a"/>
+          <ellipse cx="96" cy="100" rx="11" ry="5" fill="#66bb6a"/>
+          <ellipse cx="124" cy="100" rx="11" ry="5" fill="#66bb6a"/>
+          <text x="85" y="148" font-size="10" fill="#3e2723">對生(節長2片)</text>
+        </g>
+      </svg>
+    `,
+    keypoints: [
+      "葉脈主要功能是輸送水分與養分，分為互相平行的「平行脈」與網狀交錯的「網狀脈」。",
+      "葉序排列：互生（一節1片，如樟樹）、對生（一節2片相對，如桂花）、輪生（一節3片以上環繞，如黑板樹）。",
+      "葉子錯開排列可避免上下重疊遮蔽，使整株植物的每片葉子都能接收充足陽光。"
+    ],
+    caseTitle: "素養題組二：校園落葉偵探社",
+    caseStory: "自然課時，小朋友在校園樹下撿拾落葉：小華撿到細長平行紋的百合葉；小美撿到鋸齒邊緣且交錯如網的桂花葉；小明撿到心形平滑的菩提葉。",
+    caseQ: [
+      { q: "小華撿到的百合葉，它的葉脈紋路屬於下列哪一種？", opts: ["網狀脈", "平行脈", "輪生脈", "鋸齒脈"], a: 1, e: "脈紋筆直朝同一方向延伸的稱為平行脈，如百合、水稻、青蔥。" },
+      { q: "若將桂花葉與百合葉的「葉緣」做比較，下列描述何者正確？", opts: ["桂花葉是平滑完整，百合葉有鋸齒", "桂花葉有鋸齒狀，百合葉邊緣平滑", "兩者都是深裂狀", "兩者都長滿刺針"], a: 1, e: "桂花葉邊緣呈現鋸齒凹凸；百合葉邊緣平整光滑。" },
+      { q: "小朋友透光觀察活體植物葉片上的葉脈，葉脈在生理上的核心任務是什麼？", opts: ["捕捉飛過的蚊蟲", "輸送根部吸收的水分與葉片光合作用製造的養分", "幫助花朵散發香味", "儲存成熟種子"], a: 1, e: "葉脈布滿維管束，是葉片進行水分與養分輸送的關鍵通道。" }
+    ],
+    qIndices: [4, 5, 6, 7, 8, 9, 10, 11, 12]
+  },
+  3: {
+    id: 3,
+    name: "莖的形態分類與支撐",
+    icon: "🪵",
+    desc: "比較木本莖（粗壯堅韌）、草本莖（柔軟多汁）、藤本莖（攀爬纏繞）如何因應環境支撐身體爭取日照。",
+    svg: `
+      <svg viewBox="0 0 400 160" style="max-width:380px;">
+        <!-- 木本莖 -->
+        <g transform="translate(30,15)">
+          <rect x="25" y="15" width="26" height="105" fill="#8d6e63" rx="3"/>
+          <path d="M28,30 L28,60 M38,40 L38,80 M32,95 L32,110" stroke="#5d4037" stroke-width="1.5"/>
+          <circle cx="45" cy="45" r="2" fill="#3e2723"/>
+          <text x="12" y="138" font-size="11" fill="#4e342e" font-weight="bold">木本莖(粗壯有裂紋)</text>
+        </g>
+        <!-- 草本莖 -->
+        <g transform="translate(150,15)">
+          <rect x="25" y="45" width="10" height="75" fill="#81c784" rx="2"/>
+          <path d="M25,65 Q10,50 0,60 M35,80 Q50,65 60,75" stroke="#4caf50" stroke-width="2.5" fill="none"/>
+          <text x="8" y="138" font-size="11" fill="#1b5e20" font-weight="bold">草本莖(矮小翠綠分枝)</text>
+        </g>
+        <!-- 藤本莖 -->
+        <g transform="translate(270,15)">
+          <rect x="35" y="10" width="8" height="110" fill="#cfd8dc"/>
+          <path d="M30,120 Q50,95 32,70 T35,30 T45,15" stroke="#2e7d32" stroke-width="3" fill="none"/>
+          <circle cx="28" cy="40" r="3" fill="#8bc34a"/>
+          <text x="10" y="138" font-size="11" fill="#1b5e20" font-weight="bold">藤本莖(卷鬚/纏繞攀爬)</text>
+        </g>
+      </svg>
+    `,
+    keypoints: [
+      "木本莖：高大粗壯、木質部發達（如樟樹、木棉、小葉欖仁），表面常有縱向裂紋、皮孔或瘤刺。",
+      "草本莖：較細軟、常呈綠色且富含水分（如大花咸豐草、長春花、昭和草）。",
+      "藤本莖：細長柔軟無法直立挺拔，藉由卷鬚或自身纏繞向上攀爬（如牽牛花、絲瓜）。"
+    ],
+    caseTitle: "素養題組三：誰是陽光爭奪王？",
+    caseStory: "學校花園裡有高聳筆直的黑板樹、花圃邊矮壯的桂花，以及沿著圍籬鐵網努力向上生長的牽牛花。為了活下去，大家都各出奇招獲取陽光。",
+    caseQ: [
+      { q: "仔細觀察黑板樹與桂花的葉序排列，下列配對何者正確？", opts: ["黑板樹是互生，桂花是輪生", "黑板樹是輪生，桂花是對生", "兩者都是互生", "兩者都是輪生"], a: 1, e: "黑板樹同一個節上環繞生長多片葉子（輪生）；桂花同一節相對長出2片（對生）。" },
+      { q: "牽牛花的莖柔軟細長、無法自己直立挺拔，它主要是如何爭取陽光的？", opts: ["把莖埋進土裡長大", "利用藤本莖纏繞攀爬在圍籬棚架上往高處爭取日照", "長出粗大樹幹", "放棄生長躲在樹蔭下"], a: 1, e: "牽牛花屬於藤本莖，透過纏繞竹竿支架攀緣向上獲取充足陽光。" },
+      { q: "黑板樹向上長得非常高大，粗壯的「木本莖」對它爭取陽光有什麼好處？", opts: ["木本莖質地粗硬支撐力強，能把枝葉高高推向空中，不易被周圍植物遮蔽", "能隨風倒在地上休息", "表面能大量吸水取代光照", "木本莖能直接代替葉子行光合作用"], a: 0, e: "木本莖提供堅固骨架，使樹冠高聳開展，爭取最大日照空間。" }
+    ],
+    qIndices: [13, 14, 15, 16, 17, 18, 35, 36]
+  },
+  4: {
+    id: 4,
+    name: "根系特徵與吸水探究",
+    icon: "🥕",
+    desc: "辨別深入底層的軸根與淺層叢生的鬚根，理解根部固定與吸水功能，並掌握科學控制變因實驗。",
+    svg: `
+      <svg viewBox="0 0 400 160" style="max-width:380px;">
+        <!-- 軸根 -->
+        <g transform="translate(40,15)">
+          <path d="M40,20 L40,85 Q40,105 40,115" stroke="#e64a19" stroke-width="4.5" fill="none"/>
+          <path d="M40,35 L20,50 M40,55 L60,70 M40,75 L25,90" stroke="#ff7043" stroke-width="2"/>
+          <text x="10" y="138" font-size="11" fill="#bf360c" font-weight="bold">軸根 (主根粗長深入)</text>
+        </g>
+        <!-- 鬚根 -->
+        <g transform="translate(150,15)">
+          <path d="M45,20 L28,95 M45,20 L38,105 M45,20 L45,110 M45,20 L53,105 M45,20 L62,95" stroke="#8d6e63" stroke-width="2.2" fill="none"/>
+          <text x="18" y="138" font-size="11" fill="#4e342e" font-weight="bold">鬚根 (細長均勻叢生)</text>
+        </g>
+        <!-- 吸水瓶實驗 -->
+        <g transform="translate(265,15)">
+          <rect x="25" y="40" width="40" height="75" rx="6" fill="#e1f5fe" stroke="#0288d1" stroke-width="1.5"/>
+          <ellipse cx="45" cy="38" rx="10" ry="5" fill="#ff7043"/>
+          <line x1="20" y1="65" x2="70" y2="65" stroke="#f44336" stroke-dasharray="3,2" stroke-width="2"/>
+          <text x="8" y="138" font-size="11" fill="#01579b" font-weight="bold">油土密封防止蒸發</text>
+        </g>
+      </svg>
+    `,
+    keypoints: [
+      "軸根：有一條粗長的主根深入土壤，旁邊長出細側根（如菠菜、小白菜、莧菜）。",
+      "鬚根：沒有主根，根部細細叢生如鬍鬚，分布於土壤淺層（如蔥、蒜）。",
+      "吸水實驗關鍵：瓶口用「油黏土」密封，防止水分自水面自然蒸發，證明水位下降是由「根部吸收」。"
+    ],
+    caseTitle: "素養題組四：小農夫的蔬菜根莖課",
+    caseStory: "三年級班級菜園採收日，同學們拔起小白菜、菠菜、青蔥與蒜。大家洗去泥土時發現根部外型完全不同。老師趁機帶大家在教室做了一個水瓶密封吸水實驗。",
+    caseQ: [
+      { q: "小農夫發現菠菜和小白菜有一根粗粗的主根直通地下，這種根系稱為什麼？", opts: ["鬚根", "軸根", "氣生根", "塊根"], a: 1, e: "具有明顯主軸的粗長根系為軸根，小白菜、菠菜、莧菜皆屬於軸根植物。" },
+      { q: "蔥和蒜的根部是由大量細長、粗細差不多的小根聚集在一起，屬於哪種根系？", opts: ["軸根", "鬚根", "浮根", "板根"], a: 1, e: "無主根、由莖底端叢生出均勻細根的根系稱為鬚根，如蔥、蒜。" },
+      { q: "老師將植物插在水瓶中，瓶口用油黏土密封並畫上水面紅線。幾天後水面明顯下降，證明了什麼？", opts: ["油黏土會把水喝光", "水會自然從玻璃穿透蒸發", "植物生長所需的水分主要是由根部吸收的", "植物葉片會把水分吸乾"], a: 2, e: "油土密封排除了空氣自然蒸發干擾，水位下降證實水分是由植物根部吸收。" }
+    ],
+    qIndices: [19, 20, 21, 22, 23]
+  },
+  5: {
+    id: 5,
+    name: "花朵構造與繁衍傳播",
+    icon: "🌸",
+    desc: "解構花萼、花瓣、雄蕊（花粉）、雌蕊的繁衍任務，認識果實保護種子與風力、動物等多樣化傳播策略。",
+    svg: `
+      <svg viewBox="0 0 400 160" style="max-width:380px;">
+        <!-- 花朵構造 -->
+        <g transform="translate(40,10)">
+          <!-- 花萼 -->
+          <path d="M60,100 Q75,115 90,100 L75,120 Z" fill="#4caf50"/>
+          <line x1="75" y1="120" x2="75" y2="135" stroke="#2e7d32" stroke-width="3"/>
+          <!-- 花瓣 -->
+          <ellipse cx="50" cy="65" rx="16" ry="26" fill="#f48fb1" transform="rotate(-30 50 65)"/>
+          <ellipse cx="100" cy="65" rx="16" ry="26" fill="#f48fb1" transform="rotate(30 100 65)"/>
+          <ellipse cx="75" cy="50" rx="16" ry="26" fill="#f06292"/>
+          <!-- 雌蕊 -->
+          <path d="M75,95 L75,45" stroke="#388e3c" stroke-width="3"/>
+          <circle cx="75" cy="43" r="4" fill="#ffeb3b"/>
+          <!-- 雄蕊 -->
+          <path d="M66,95 Q62,60 65,52 M84,95 Q88,60 85,52" stroke="#fbc02d" stroke-width="1.5" fill="none"/>
+          <circle cx="65" cy="50" r="2.5" fill="#f57f17"/>
+          <circle cx="85" cy="50" r="2.5" fill="#f57f17"/>
+          <text x="25" y="148" font-size="11" fill="#ad1457" font-weight="bold">花(萼/瓣/雄蕊花粉/雌蕊)</text>
+        </g>
+        <!-- 傳播策略 -->
+        <g transform="translate(220,10)">
+          <!-- 臺灣欒樹 -->
+          <polygon points="40,25 25,60 55,60" fill="#ffab91" stroke="#e64a19" stroke-width="1.5"/>
+          <circle cx="40" cy="45" r="3" fill="#3e2723"/>
+          <text x="10" y="76" font-size="10" fill="#bf360c">欒樹(氣囊風力)</text>
+          <!-- 龍眼 -->
+          <circle cx="110" cy="45" r="15" fill="#ffe082" stroke="#ffb300" stroke-width="1.5"/>
+          <circle cx="110" cy="45" r="7" fill="#3e2723"/>
+          <text x="85" y="76" font-size="10" fill="#ff6f00">龍眼(甜美動物採食)</text>
+          <text x="18" y="148" font-size="11" fill="#e65100" font-weight="bold">果實保護種子並協助傳播</text>
+        </g>
+      </svg>
+    `,
+    keypoints: [
+      "花朵四構造：花萼（保護幼花）、花瓣（吸引昆蟲）、雄蕊（製造花粉）、雌蕊（接受花粉結成果實）。",
+      "昆蟲穿梭採食花蜜花粉時協助授粉；受精後雌蕊子房發育為「果實」，果實內部包覆「種子」。",
+      "傳播策略：臺灣欒樹果實如氣囊隨風飄揚；龍眼木瓜芳香甜美吸引動物取食散播種子。"
+    ],
+    caseTitle: "素養題組五：大自然媒人婆與種子旅行記",
+    caseStory: "春天杜鵑花與洋紫荊花盛開，蜜蜂在花叢間忙碌穿梭。秋天花謝後結成果實，臺灣欒樹掛滿紅褐色氣球果實，地上則留有雀鳥啄食剩餘的木瓜與龍眼果核。",
+    caseQ: [
+      { q: "花朵的哪一個部位在成熟時會產生黃色的花粉，等待昆蟲前來傳遞？", opts: ["雌蕊", "花瓣", "花萼", "雄蕊頂端的花藥"], a: 3, e: "雄蕊頂端的花藥製造花粉；雌蕊負責接受花粉以利後續受精與結實。" },
+      { q: "蜜蜂在花朵間採食花蜜花粉時，同時幫植物完成了什麼重大任務？", opts: ["替花朵遮擋強風", "幫花朵傳遞花粉（授粉），使植物能受精結實", "把花瓣咬下來做窩", "幫植物拔除雜草"], a: 1, e: "昆蟲穿梭時將雄蕊花粉帶到雌蕊柱頭完成授粉，使植物順利繁衍。" },
+      { q: "臺灣欒樹的果實膨大有如氣球，與龍眼甜美的果肉相比，它們散播種子的策略有何不同？", opts: ["欒樹靠風力吹送飄揚，龍眼靠吸引動物採食傳播", "兩者都只能掉在樹腳下爛掉", "欒樹靠水漂，龍眼靠自爆彈開", "兩者都靠昆蟲搬運"], a: 0, e: "臺灣欒樹果實輕盈具氣囊可隨風飄移；龍眼以香甜多汁果肉吸引動物採食帶往遠處。" }
+    ],
+    qIndices: [24, 25, 26, 27, 28, 29, 30, 31, 32]
+  },
+  6: {
+    id: 6,
+    name: "生活應用與科普閱讀",
+    icon: "🍽️",
+    desc: "連結食、衣、住、行、育、樂實務應用，揭開玉米筍身世之謎，探討薄荷九層塔化學防禦與生石花抗旱擬態。",
+    svg: `
+      <svg viewBox="0 0 400 160" style="max-width:380px;">
+        <!-- 玉米筍 -->
+        <g transform="translate(30,15)">
+          <polygon points="40,25 28,85 52,85" fill="#fff59d" stroke="#fbc02d" stroke-width="1.5"/>
+          <text x="12" y="110" font-size="11" fill="#f57f17" font-weight="bold">玉米筍(幼嫩果實)</text>
+          <text x="8" y="128" font-size="9" fill="#777">農民疏果摘下的小玉米</text>
+        </g>
+        <!-- 生石花 -->
+        <g transform="translate(155,15)">
+          <ellipse cx="40" cy="50" rx="16" ry="12" fill="#90a4ae" stroke="#546e7a" stroke-width="2"/>
+          <ellipse cx="65" cy="50" rx="16" ry="12" fill="#78909c" stroke="#546e7a" stroke-width="2"/>
+          <line x1="52" y1="40" x2="52" y2="60" stroke="#37474f" stroke-width="2"/>
+          <text x="20" y="110" font-size="11" fill="#37474f" font-weight="bold">生石花(肉質葉擬態)</text>
+          <text x="14" y="128" font-size="9" fill="#777">像石頭防啃食/抗旱保水</text>
+        </g>
+        <!-- 香草植物防禦 -->
+        <g transform="translate(285,15)">
+          <path d="M40,25 Q15,45 25,65 Q45,60 40,85 Q65,65 55,45 Z" fill="#81c784" stroke="#2e7d32" stroke-width="1.5"/>
+          <text x="10" y="110" font-size="11" fill="#1b5e20" font-weight="bold">薄荷/九層塔(氣味)</text>
+          <text x="8" y="128" font-size="9" fill="#777">驅趕昆蟲秘密防禦武器</text>
+        </g>
+      </svg>
+    `,
+    keypoints: [
+      "日常多元應用：稻米為食物（食）、棉花做衣褲（衣）、木材做木屋家具（住）、拼板舟與木棧道（行）、花鐘美化環境與植物園戶外教育（育樂）。",
+      "玉米筍身世：是玉米在生長早期疏果摘下的幼嫩小果實（非竹筍）。",
+      "自然智慧：生石花特化肥厚葉片偽裝成石頭防草食動物並蓄水；薄荷與九層塔散發特殊氣味驅蟲防害。"
+    ],
+    caseTitle: "素養題組六：餐桌與生活中的植物魔法",
+    caseStory: "小萱全家去露營兼逛農夫市集。小萱在生鮮區看見玉米筍；在多肉展區見到像小石頭的生石花；野炊煮三杯雞時，媽媽摘了九層塔葉丟進鍋中，頓時香氣四溢。",
+    caseQ: [
+      { q: "玉米筍並不是一種竹筍。玉米筍在植物構造分類上到底是哪一個部位？", opts: ["玉米的粗壯主根", "玉米植株尚未長大成熟的幼嫩果實", "玉米的花瓣", "玉米地下膨大的莖"], a: 1, e: "玉米筍是玉米在結穗初期提早採摘的幼嫩小果實，富含幼嫩組織與未發育種子。" },
+      { q: "生石花（石頭玉）肥厚的兩瓣葉片偽裝得像天然石頭一樣，這對它的生存有何關鍵功能？", opts: ["騙過草食動物避免被啃食，且厚葉能儲存大量水分度過乾旱", "方便滾動到不同地方", "讓自己沉入泥土深處冬眠", "吸引毛毛蟲在上面產卵"], a: 0, e: "生石花的擬態形態能避開掠食動物注意，其肉質組織能在嚴苛乾旱環境鎖住水分。" },
+      { q: "九層塔、薄荷等植物的葉片能散發強烈精油氣味，這在植物生態與人類生活中的意義分別是什麼？", opts: ["在自然界吸引害蟲把葉子吃光；人類用來洗衣服", "在自然界是防禦害蟲不敢靠近的法寶；人類則善用其香氣提升餐飲風味", "在自然界幫植物降溫；人類拿來鋪馬路", "在自然界吸引雜草；人類拿來蓋房子"], a: 1, e: "植物散發氣味主要為化學防衛驅蟲適應；人類則智慧地萃取應用於烹飪香料、糖果茶飲或調味精油中。" }
+    ],
+    qIndices: [33, 34, 37, 38, 39, 40, 41, 42, 43, 44, 45]
+  }
+};
+
+// 50題選擇題題庫
+const allQuestions = [
+  { q: "在校園環境中，下列哪一項屬於「生物」？", opts: ["單槓", "鐵椅", "長春花", "石頭"], a: 2, e: "長春花具有生命，需要水分和陽光，會長大並繁衍後代，屬於生物；鐵椅、石頭、單槓為非生物。" },
+  { q: "觀察校園中的動物和植物，下列哪項敘述是植物的共同特徵？", opts: ["會到處飛來飛去", "會開口吃固體食物", "大部分固定在土中不會自由移動", "身上長有羽毛"], a: 2, e: "植物通常固著在土壤中生長、不會自由位移，能利用陽光與水分自己製造養分。" },
+  { q: "綠色植物進行生長，大部分身體可以區分為哪六個構造？", opts: ["頭、胸、腹、手、腳、尾", "根、莖、葉、花、果實、種子", "花瓣、花蕊、樹皮、樹枝、樹葉", "細胞、血液、骨骼、肌肉、皮膚"], a: 1, e: "植物完整的六大器官構造為：根、莖、葉、花、果實和種子。" },
+  { q: "校園中觀察植物時，下列哪一項做法是「正確且安全」的行為？", opts: ["摘下葉子放進嘴巴嚐嚐看味道", "直接折斷枝條帶回家觀察", "用眼睛看、拍照或用放大鏡仔細觀察", "用手指用力去掐有尖刺的枝條"], a: 2, e: "觀察植物要愛護植物，不可隨意採摘或食用，遇到有刺或分泌乳汁的植物不可直接用手觸摸以免中毒受傷。" },
+  { q: "百合的葉子具有一條一條筆直排列的紋路，這種葉脈稱為什麼？", opts: ["網狀脈", "平行脈", "輪生脈", "鋸齒脈"], a: 1, e: "脈紋彼此平行的稱為「平行脈」，例如百合、水稻、蔥；互相交錯如網子的稱為「網狀脈」。" },
+  { q: "樟樹和桂花的葉面上，葉脈呈現互相交錯的網狀紋路，稱為什麼？", opts: ["平行脈", "網狀脈", "羽狀互生脈", "放射脈"], a: 1, e: "交錯成網狀結構的葉脈稱為「網狀脈」。" },
+  { q: "桂花的葉子邊緣摸起來有尖尖凸起像鋸子一樣，這種邊緣稱為什麼？", opts: ["平滑完整", "波浪狀", "鋸齒狀", "深裂狀"], a: 2, e: "邊緣呈現鋸齒凹凸的形態稱為「鋸齒狀葉緣」；像長春花邊緣平整的則是「平滑完整」。" },
+  { q: "植物葉片上的葉脈，除了能支撐葉片外，最主要的生理功能是什麼？", opts: ["吸引蜜蜂採花蜜", "輸送水分和養分", "幫助葉子攀爬在竹竿上", "結出好吃的種子"], a: 1, e: "葉脈如同植物葉片裡的微血管，負責輸送根部吸收的水分與葉子製造的養分。" },
+  { q: "植物枝條上長出葉子的小突起位置，在植物學上稱為什麼？", opts: ["節", "脈", "芽", "穴"], a: 0, e: "莖或枝條上長出葉子的地方稱為「節」；節旁長出的小突起物稱為「芽」。" },
+  { q: "榕樹的枝條上，每個「節」上只長出「1片」葉子，這種葉序稱為？", opts: ["對生", "互生", "輪生", "叢生"], a: 1, e: "每個節只長出 1 片葉子，且左右交錯生長的葉序稱為「互生」（如榕樹、樟樹）。" },
+  { q: "桂花或福木的枝條上，每個「節」上相對長出「2片」葉子，這種葉序是？", opts: ["互生", "對生", "輪生", "雙生"], a: 1, e: "同一個節上相對生長出 2 片葉子的葉序稱為「對生」（如桂花、福木）。" },
+  { q: "黑板樹的枝條上，同一個「節」上同時長出「3片或更多片」葉子圍成一圈，稱為？", opts: ["互生", "對生", "輪生", "環生"], a: 2, e: "同一個節上環繞生長出 3 片以上葉子的葉序稱為「輪生」（如黑板樹、軟枝黃蟬）。" },
+  { q: "植物的葉子在莖上互相錯開生長（葉序），最主要的生存目的是什麼？", opts: ["為了讓小鳥築巢", "讓每片葉子都能均勻照到陽光製造養分", "讓雨水不要滴到泥土裡", "為了長得比別人更漂亮"], a: 1, e: "植物的葉序排列能使葉片彼此錯開，減少遮蔽，讓下方的葉片也能充分照到陽光來行光合作用製造養分。" },
+  { q: "樟樹長得非常高大，樹幹粗硬結實且表面有深裂紋，這種莖屬於哪一類？", opts: ["草本莖", "藤本莖", "木本莖", "肉質莖"], a: 2, e: "高大粗壯、木質部發達且能逐年增粗生長的莖稱為「木本莖」（如樟樹、木棉、小葉欖仁）。" },
+  { q: "大花咸豐草與昭和草的莖通常較細、呈綠色且富含水分，這種莖屬於哪一類？", opts: ["木本莖", "藤本莖", "木質莖", "草本莖"], a: 3, e: "柔軟、通常較細、呈現綠色且不會長得像大樹般粗硬的莖稱為「草本莖」。" },
+  { q: "牽牛花和絲瓜的莖柔軟細長、無法自己直立，需要依附竹竿向上生長，屬於？", opts: ["木本莖", "草本莖", "藤本莖", "地下莖"], a: 2, e: "無法直立挺拔，需藉由纏繞或卷鬚攀爬在其他物體上獲取陽光的莖稱為「藤本莖」。" },
+  { q: "小葉欖仁的木本莖樹皮表面，常可以看到細小的斑點或橫向裂孔，這些構造是？", opts: ["皮孔（幫助氣體交換）", "被毛毛蟲咬破的洞", "長出花朵的洞", "吸收雨水的孔"], a: 0, e: "樹皮表面的小孔稱為「皮孔」，主要提供樹木莖部進行通氣與氣體交換。" },
+  { q: "木棉樹的樹幹表面長有許多尖尖硬硬的突起物，稱為什麼？", opts: ["皮孔", "瘤刺", "不定根", "側芽"], a: 1, e: "木棉等樹幹表面堅硬的圓錐狀凸起物稱為「瘤刺」，具有防禦保護等功能。" },
+  { q: "絲瓜主要利用莖部特化產生的什麼構造來纏繞竹竿架子向上攀爬？", opts: ["氣生根", "卷鬚", "葉柄", "托葉"], a: 1, e: "絲瓜會長出細長螺旋狀的「卷鬚」來緊緊抓住支架向上攀爬。" },
+  { q: "菠菜和小白菜有一條明顯粗長、向下直直深入泥土的主根，這種根系稱為？", opts: ["鬚根", "軸根", "氣根", "浮水根"], a: 1, e: "具有一條明顯主根（軸心），周圍再分生細小側根的根系稱為「軸根」。" },
+  { q: "廚房常見的蔥和蒜，根部由許多粗細差不多、細細長長像鬍鬚一樣的根組成，稱為？", opts: ["軸根", "鬚根", "肉質根", "板根"], a: 1, e: "沒有明顯主根，由莖基部叢生出許多細長如鬍鬚的根系稱為「鬚根」。" },
+  { q: "深入土壤深處的「軸根」與生長在土壤淺層的「鬚根」，共通的基本功能是什麼？", opts: ["吸收陽光與製造種子", "固定植物身體與吸收水分及養分", "散發香味吸引蜜蜂", "長出美麗的花朵"], a: 1, e: "植物根部的主要功能是：抓緊土壤固定植物體，以及從泥土中吸收水分與礦物質養分。" },
+  { q: "在進行「探究植物根部吸水實驗」時，為什麼要在裝水的寶特瓶口用「油土」完全密封？", opts: ["防止瓶子倒下來", "防止瓶內水分自然蒸發，確保水位下降是根吸收的", "給植物根部保暖", "防止泥土掉入瓶子中"], a: 1, e: "實驗必須控制變因，用油土密封瓶口可防止水分從水面蒸發，證明水位下降確實是由「植物的根吸收」所致。" },
+  { q: "根部吸水實驗中，若在通風光照處放置幾天後，瓶內的水位高度會產生什麼變化？", opts: ["水位上升", "水位下降", "完全沒有任何變化", "水變成紅色"], a: 1, e: "植物的根部會不斷吸收容器內的水分，因此水面高度會逐漸「下降」。" },
+  { q: "一朵完整的花，通常包含哪四個基本構造？", opts: ["花萼、花瓣、雄蕊、雌蕊", "花皮、花心、花枝、花粉", "花柄、花托、花肉、花殼", "花芽、側芽、頂芽、花節"], a: 0, e: "花的基本構造主要包含由外而內的花萼、花瓣、雄蕊與雌蕊四大部分。" },
+  { q: "在花朵最外側，像一片片綠色小葉子包覆在花瓣基部，能保護幼嫩花苞的構造是？", opts: ["花瓣", "花萼", "雌蕊", "雄蕊"], a: 1, e: "花萼位於花朵外側，主要在開花前保護嬌嫩的花苞。" },
+  { q: "杜鵑花朵中央通常有多枚頂端帶有黃色粉末的構造，這些黃色粉末稱為什麼？", opts: ["花蜜", "花粉（位於雄蕊頂端）", "種子", "胚珠"], a: 1, e: "雄蕊頂端的花藥成熟後會產生大量「花粉」，透過昆蟲或風傳遞至雌蕊完成授粉。" },
+  { q: "蜜蜂和蝴蝶常常在花叢中飛舞，牠們來到花朵最主要的目的是什麼？", opts: ["幫助花朵澆水", "採食花粉與吸食花蜜", "在花瓣上睡覺", "咬碎花萼做窩"], a: 1, e: "昆蟲被鮮豔花瓣或花香吸引，主要是為了採食豐富的花粉與花蜜作為食物。" },
+  { q: "開花植物的花朵完成傳粉受精之後，雌蕊通常會逐漸發育長成什麼構造？", opts: ["新的葉子", "果實", "木本莖", "軸根"], a: 1, e: "花朵完成授粉與受精後，花瓣與雄蕊逐漸凋謝，雌蕊子房會膨大發育為「果實」。" },
+  { q: "我們切開木瓜、番石榴或番茄時，果實裡面通常包裹著什麼？", opts: ["花瓣", "種子", "葉脈", "皮孔"], a: 1, e: "果實的內部包覆著「種子」，果實具有保護種子的重要功能。" },
+  { q: "龍眼與木瓜的果實甜美多汁、氣味芳香，這對植物繁衍有什麼好處？", opts: ["防止果實被風吹落", "吸引鳥類或動物採食，幫助把種子傳播到遠處", "吸收更多空氣中的水氣", "讓莖長得更高大"], a: 1, e: "香甜多汁的果實可吸引動物吃下果肉，並將不易消化的種子隨排泄物散播到各處繁衍。" },
+  { q: "臺灣欒樹成熟的果實外表像一顆顆鼓起的小燈籠或氣球，它主要利用什麼方式傳播種子？", opts: ["靠水流漂浮傳播", "果實輕且有氣囊，隨風飄揚傳播", "黏在動物毛皮上", "果實成熟自爆彈射"], a: 1, e: "臺灣欒樹果實像氣囊充氣的小紙囊，質地輕盈，成熟乾枯後能隨風飄揚散佈種子。" },
+  { q: "下列哪一種植物的果實裡面，通常只含有「1顆」堅硬的種子？", opts: ["木瓜", "番石榴", "龍眼", "番茄"], a: 2, e: "龍眼（荔枝、芒果）果實內通常只有 1 顆種子；木瓜、番石榴與番茄內則含有非常多顆種子。" },
+  { q: "我們每天吃的白米飯，是來自水稻植物身體的哪一個構造部位？", opts: ["根", "莖", "果實和種子", "葉"], a: 2, e: "稻穀是水稻的果實，碾除外殼後的白米就是水稻植物富含澱粉的種子部位。" },
+  { q: "我們穿的棉質衣物或褲子，原料棉花是來自植物的什麼部位纖維製成的？", opts: ["棉花植物種子上的纖維", "木棉樹的粗壯樹皮", "松樹的木質莖", "長春花的葉脈"], a: 0, e: "棉織品是由棉花植株果實開裂後，種子表面密生的白色絨毛纖維紡紗製成。" },
+  { q: "蘭嶼達悟族著名的「拼板舟」以及森林步道裡的「木棧道」，是利用植物的什麼做成的？", opts: ["植物柔軟的葉片", "木本植物粗壯堅硬的莖部木材", "植物的鬚根", "花朵曬乾後的纖維"], a: 1, e: "人類常利用木本植物粗壯堅硬的樹幹木材（木本莖）來建造木屋、家具、棧道或拼板舟。" },
+  { q: "陽明山著名的觀光景點「花鐘」，是將植物應用在人類生活中的哪一個層面？", opts: ["食（食用）", "衣（製作布料）", "住（蓋房子）", "育與樂（美化環境與休閒育樂）"], a: 3, e: "花鐘利用開花規律與鮮豔植栽美化景觀，屬於人類生活中的教育、休閒與育樂層面。" },
+  { q: "「二叭子植物園」設立步道並標示多種植物解說牌，主要體現植物在生活中的哪項功能？", opts: ["提供自然生態教學與環境休閒（育樂）", "大量砍伐木材做家具", "專門生產棉被衣服", "當作農藥提煉場所"], a: 0, e: "植物園兼具生態保育、自然科普教育導覽與市民休閒育樂等多重價值。" },
+  { q: "科學閱讀中介紹的薄荷、九層塔、香茅與迷迭香，葉片常散發濃郁特殊氣味，對植物有何好處？", opts: ["讓自己曬傷", "驅趕討厭的昆蟲，是保護自己的秘密武器", "防止葉子水分過多", "吸引小鳥把葉子吃光"], a: 1, e: "香草植物無法移動逃跑，葉片散發特殊芳香揮發油可使草食昆蟲不敢靠近啃食，達到自我防衛目的。" },
+  { q: "炒三杯雞或煮魷魚羹麵時常加入「九層塔」嫩葉，這在人類生活中屬於哪一種應用？", opts: ["醫療敷料", "利用香草提升食物風味層次（食）", "防止衣服受潮", "用來固定帳篷"], a: 1, e: "九層塔葉具有強烈香氣，在台灣料理中常作為提味香辛料增添風味。" },
+  { q: "科學漫畫中介紹的「生石花（石頭玉）」，它長得圓圓扁扁像石頭的構造其實是它的？", opts: ["膨大的根", "變態肥厚的肉質葉子", "盛開的花瓣", "硬邦邦的果實"], a: 1, e: "生石花外表像石頭的構造，其實是它特化肥厚對生的「肉質葉」，能抗旱並偽裝。" },
+  { q: "生石花（石頭玉）長得像小碎石一樣的外觀，對它在自然界生活有什麼極大優勢？", opts: ["容易被採集當飾品", "能偽裝自己，避免被沙漠中的草食動物吃掉", "讓身體變得非常笨重", "吸收地底下的黃金"], a: 1, e: "擬態成礫石不僅能躲避草食動物覓食啃咬，其厚厚肉質葉更能儲存大量珍貴水分。" },
+  { q: "火鍋店常見小巧脆嫩的「玉米筍」，在植物學上真正的身分到底是什麼？", opts: ["一種竹筍的幼芽", "玉米植株尚未成熟的幼嫩小果實", "玉米深入土中的鬚根", "生長在竹子上的真菌"], a: 1, e: "玉米筍是農夫在玉米生長期疏果摘下的「幼嫩玉米果實（含未發育種子）」，並不是竹筍。" },
+  { q: "農民在種植食用玉米時，為什麼要在早期摘除部分玉米筍？", opts: ["為了讓植株死掉", "集中全株養分，讓留下來的玉米長得碩大飽滿", "因為玉米筍有毒不能吃", "防止玉米招來毛毛蟲"], a: 1, e: "疏果摘除過多的玉米筍，可以把葉片光合作用製造的養分集中供應給主果穗發育成熟。" },
+  { q: "逛超市時，媽媽想買「加在三明治裡生吃、圓圓脆脆的生菜」，通常指的是下列哪一種？", opts: ["結球萵苣", "高麗菜", "菠菜", "白蘿蔔"], a: 0, e: "常用於漢堡、沙拉及三明治中的爽脆生菜為「結球萵苣」；高麗菜質地較厚硬，通常熟食居多。" },
+  { q: "結球萵苣和高麗菜雖然都是包成球狀的蔬菜，但我們主要食用的部位是植物的什麼？", opts: ["膨大的根部", "層層包裹的葉部", "木質化的莖", "成熟的種子"], a: 1, e: "結球萵苣與高麗菜皆為葉菜類，我們食用的是其緊密包裹成球的「葉片（葉球）」。" },
+  { q: "下列哪一種植物的開花季節主要是在「寒冷的冬天到初春」，且開花時滿樹繁花？", opts: ["梅花、山櫻花", "荷花（蓮花）", "金針花", "向日葵"], a: 0, e: "梅花在嚴冬臘月盛開，山櫻花在冬末初春綻放；荷花與金針花則為夏季植物。" },
+  { q: "在植物各構造分工中，負責吸收陽光並製造全株生長所需養分的主要部位是？", opts: ["花瓣", "葉", "果皮", "種皮"], a: 1, e: "植物的「葉片」含有葉綠素，能接收陽光照射並利用水與空氣製造植物生長所需的養分。" },
+  { q: "下列哪一組植物的根系都屬於「鬚根」？", opts: ["菠菜、莧菜", "小白菜、胡蘿蔔", "蔥、蒜", "大花咸豐草、樟樹"], a: 2, e: "蔥、蒜、水稻皆無主根，根系由莖底端成叢長出，均屬於「鬚根」；菠菜、小白菜、莧菜為「軸根」。" },
+  { q: "大自然中植物為野生動物提供了極其關鍵的生存條件，這包含了下列哪一項？", opts: ["製造塑膠提供遮蔽", "提供花蜜果實作為食物，並作為鳥類築巢棲息的家園", "替動物洗澡", "防止動物體溫過高"], a: 1, e: "植物不僅能美化地球，更是整個生態系的基石，提供動物食物（花粉花蜜果實嫩葉）與安全的棲息庇護所。" }
+];
+
+// 答題紀錄
+let userAnswers = new Array(allQuestions.length).fill(null);
+let currentDimId = 1;
+
+// 初始化
+window.onload = function() {
+  renderDimensionView(1);
+  renderAllQuestionsView();
+  updateProgressBadges();
+};
+
+// 切換頂部主要模式
+function switchMainMode(mode) {
+  document.querySelectorAll(".top-tab-btn").forEach(btn => btn.classList.remove("active"));
+  document.getElementById("mode-dimension").classList.add("hidden");
+  document.getElementById("mode-allq").classList.add("hidden");
+  document.getElementById("mode-report").classList.add("hidden");
+  
+  const dimWrapper = document.getElementById("dim-tabs-wrapper");
+
+  if (mode === 'dimension') {
+    event.target.classList.add("active");
+    document.getElementById("mode-dimension").classList.remove("hidden");
+    dimWrapper.classList.remove("hidden");
+    renderDimensionView(currentDimId);
+  } else if (mode === 'allq') {
+    event.target.classList.add("active");
+    document.getElementById("mode-allq").classList.remove("hidden");
+    dimWrapper.classList.add("hidden");
+    renderAllQuestionsView();
+  } else if (mode === 'report') {
+    event.target.classList.add("active");
+    document.getElementById("mode-report").classList.remove("hidden");
+    dimWrapper.classList.add("hidden");
+    generateAssessmentReport();
+  }
+}
+
+// 切換素養分頁
+function switchDimension(dimId) {
+  currentDimId = dimId;
+  document.querySelectorAll(".dim-tab-btn").forEach((btn, idx) => {
+    btn.classList.toggle("active", idx + 1 === dimId);
+  });
+  renderDimensionView(dimId);
+}
+
+function nextDimensionTab() {
+  if (currentDimId < 6) {
+    switchDimension(currentDimId + 1);
+    window.scrollTo({ top: 120, behavior: 'smooth' });
+  } else {
+    switchMainMode('report');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+// 渲染特定素養分頁內容
+function renderDimensionView(dimId) {
+  const data = dimensionsData[dimId];
+
+  // 1. 素養橫幅
+  document.getElementById("dim-banner").innerHTML = `
+    <h2>${data.icon} 第 ${dimId} 核心素養：${data.name}</h2>
+    <p>${data.desc}</p>
+  `;
+
+  // 2. 圖像化百寶箱
+  document.getElementById("dim-visual-card").innerHTML = `
+    <h3>🎨 ${data.name}・圖像化圖解速記</h3>
+    <div class="ency-svg-wrap">${data.svg}</div>
+    <div class="ency-keypoints">
+      <b>📌 本向度核心觀念筆記：</b>
+      <ul>
+        ${data.keypoints.map(pt => `<li>${pt}</li>`).join('')}
+      </ul>
+    </div>
+  `;
+
+  // 3. 素養情境題組
+  let caseHtml = `
+    <h3>🔍 ${data.caseTitle}</h3>
+    <p><b>📖 情境觀察任務：</b><br>${data.caseStory}</p>
+    <div style="margin-top:14px;">
+  `;
+  data.caseQ.forEach((cq, cIdx) => {
+    caseHtml += `
+      <div style="background:white; padding:12px 14px; border-radius:10px; margin-bottom:12px; border:1px solid #b2dfdb;">
+        <div style="font-weight:bold; color:#00695c; margin-bottom:8px;">子題 ${cIdx+1}. ${cq.q}</div>
+        <div class="options-list">
+          ${cq.opts.map((opt, oIdx) => `
+            <button class="opt-btn" onclick="checkCaseAnswer(this, ${cq.a}, ${oIdx}, '${cq.e.replace(/'/g, "\\'")}')">
+              ${["(A)","(B)","(C)","(D)"][oIdx]} ${opt}
+            </button>
+          `).join('')}
+        </div>
+        <div class="explain-box" style="display:none;"></div>
+      </div>
+    `;
+  });
+  caseHtml += `</div>`;
+  document.getElementById("dim-case-box").innerHTML = caseHtml;
+
+  // 4. 單元測驗題目
+  renderDimensionQuestions(dimId);
+}
+
+// 渲染該素養對應的選擇題
+function renderDimensionQuestions(dimId) {
+  const qList = dimensionsData[dimId].qIndices;
+  const container = document.getElementById("dim-questions-list");
+  container.innerHTML = "";
+
+  let answeredCount = 0;
+  let correctCount = 0;
+
+  qList.forEach(qIdx => {
+    const q = allQuestions[qIdx];
+    const isAnswered = (userAnswers[qIdx] !== null);
+    if (isAnswered) {
+      answeredCount++;
+      if (userAnswers[qIdx] === q.a) correctCount++;
+    }
+
+    const item = document.createElement("div");
+    item.className = "q-item";
+    if (isAnswered) {
+      item.classList.add(userAnswers[qIdx] === q.a ? "correct-answered" : "wrong-answered");
+    }
+
+    let html = `
+      <div class="q-header">
+        <span class="q-num">第 ${qIdx + 1} 題</span>
+        <div class="q-title">${q.q}</div>
+      </div>
+      <div class="options-list">
+        ${q.opts.map((opt, oIdx) => {
+          let btnClass = "opt-btn";
+          if (isAnswered) {
+            if (oIdx === q.a) btnClass += " correct";
+            if (userAnswers[qIdx] === oIdx && oIdx !== q.a) btnClass += " wrong";
+          }
+          return `
+            <button class="${btnClass}" ${isAnswered ? 'disabled' : ''} onclick="answerQuestion(${qIdx}, ${oIdx})">
+              <b>${["(A)","(B)","(C)","(D)"][oIdx]}</b> ${opt}
+            </button>
+          `;
+        }).join('')}
+      </div>
+      <div class="explain-box" style="display:${isAnswered ? 'block' : 'none'}">
+        💡 <b>解析：</b>${q.e}
+      </div>
+    `;
+
+    item.innerHTML = html;
+    container.appendChild(item);
+  });
+
+  document.getElementById("dim-q-count").textContent = `本向度進度：${answeredCount} / ${qList.length} 題`;
+  document.getElementById("dim-score-badge").textContent = `向度答對率：${qList.length > 0 ? Math.round((correctCount/qList.length)*100) : 0}% (${correctCount}/${qList.length})`;
+}
+
+// 渲染全部題目清單
+function renderAllQuestionsView() {
+  const container = document.getElementById("all-questions-list");
+  container.innerHTML = "";
+
+  let answeredCount = 0;
+  let totalScore = 0;
+
+  allQuestions.forEach((q, qIdx) => {
+    const isAnswered = (userAnswers[qIdx] !== null);
+    if (isAnswered) {
+      answeredCount++;
+      if (userAnswers[qIdx] === q.a) totalScore += 2;
+    }
+
+    const item = document.createElement("div");
+    item.className = "q-item";
+    if (isAnswered) {
+      item.classList.add(userAnswers[qIdx] === q.a ? "correct-answered" : "wrong-answered");
+    }
+
+    let html = `
+      <div class="q-header">
+        <span class="q-num">Q${qIdx + 1}</span>
+        <div class="q-title">${q.q}</div>
+      </div>
+      <div class="options-list">
+        ${q.opts.map((opt, oIdx) => {
+          let btnClass = "opt-btn";
+          if (isAnswered) {
+            if (oIdx === q.a) btnClass += " correct";
+            if (userAnswers[qIdx] === oIdx && oIdx !== q.a) btnClass += " wrong";
+          }
+          return `
+            <button class="${btnClass}" ${isAnswered ? 'disabled' : ''} onclick="answerQuestion(${qIdx}, ${oIdx})">
+              <b>${["(A)","(B)","(C)","(D)"][oIdx]}</b> ${opt}
+            </button>
+          `;
+        }).join('')}
+      </div>
+      <div class="explain-box" style="display:${isAnswered ? 'block' : 'none'}">
+        💡 <b>解析：</b>${q.e}
+      </div>
+    `;
+
+    item.innerHTML = html;
+    container.appendChild(item);
+  });
+
+  document.getElementById("all-progress").textContent = `總進度：${answeredCount} / ${allQuestions.length} 題`;
+  document.getElementById("all-score").textContent = `總得分：${totalScore} / 100 分`;
+}
+
+// 作答處理
+function answerQuestion(qIdx, choice) {
+  userAnswers[qIdx] = choice;
+  if (choice === allQuestions[qIdx].a) {
+    soundCorrect();
+  } else {
+    soundWrong();
+  }
+
+  // 更新介面
+  renderDimensionQuestions(currentDimId);
+  renderAllQuestionsView();
+  updateProgressBadges();
+}
+
+// 情境題作答
+function checkCaseAnswer(btn, correctOpt, userOpt, explain) {
+  const parent = btn.parentElement;
+  const explainBox = parent.parentElement.querySelector(".explain-box");
+  const buttons = parent.querySelectorAll(".opt-btn");
+
+  buttons.forEach((b, idx) => {
+    b.disabled = true;
+    if (idx === correctOpt) b.classList.add("correct");
+    if (idx === userOpt && userOpt !== correctOpt) b.classList.add("wrong");
+  });
+
+  if (userOpt === correctOpt) {
+    soundCorrect();
+  } else {
+    soundWrong();
+  }
+
+  explainBox.innerHTML = `💡 <b>情境探究解析：</b>${explain}`;
+  explainBox.style.display = "block";
+}
+
+// 更新上方各素養按鈕的小標籤
+function updateProgressBadges() {
+  for (let d = 1; d <= 6; d++) {
+    const list = dimensionsData[d].qIndices;
+    let done = 0;
+    list.forEach(idx => {
+      if (userAnswers[idx] !== null) done++;
+    });
+    const badge = document.getElementById(`badge-d${d}`);
+    if (badge) badge.textContent = `${done}/${list.length}`;
+  }
+}
+
+// 生成素養評估診斷報告
+function generateAssessmentReport() {
+  let totalCorrect = 0;
+  let totalAnswered = 0;
+  const dimStats = {};
+
+  for (let d = 1; d <= 6; d++) {
+    const list = dimensionsData[d].qIndices;
+    let cor = 0;
+    let ans = 0;
+    list.forEach(idx => {
+      if (userAnswers[idx] !== null) {
+        ans++;
+        if (userAnswers[idx] === allQuestions[idx].a) cor++;
+      }
+    });
+    dimStats[d] = { total: list.length, ans, cor, rate: list.length > 0 ? (cor / list.length) : 0 };
+    totalCorrect += cor;
+    totalAnswered += ans;
+  }
+
+  const finalScore = totalCorrect * 2;
+  document.getElementById("hero-badge-score").textContent = `總分：${finalScore} 分（答對 ${totalCorrect} / ${allQuestions.length} 題）`;
+
+  // 評定榮譽稱號
+  let icon = "🌱", title = "植物見習小種子", desc = "剛剛發芽的小探險家，建議前往各素養分頁觀看圖解知識，累積更多綠色能量！";
+  if (finalScore >= 90) {
+    icon = "👑"; title = "小小神農大師"; desc = "太卓越了！對植物構造、葉序、根系到日常生活應用皆瞭若指掌，具備超凡的自然素養！";
+  } else if (finalScore >= 80) {
+    icon = "🌟"; title = "植物探險隊長"; desc = "非常優秀！精通絕大多數植物知識，只要再補齊少數易混淆細節，就是滿分達人！";
+  } else if (finalScore >= 60) {
+    icon = "🌿"; title = "綠意實習達人"; desc = "表現良好！已掌握植物基本生命特徵，建議針對較弱的素養向度進行複習。";
+  }
+  document.getElementById("hero-badge-icon").textContent = icon;
+  document.getElementById("hero-badge-title").textContent = title;
+  document.getElementById("hero-badge-desc").textContent = desc;
+
+  // 渲染六大素養進度條
+  const grid = document.getElementById("dim-report-grid");
+  grid.innerHTML = "";
+  let lowestDim = 1;
+  let minRate = 1.1;
+
+  for (let d = 1; d <= 6; d++) {
+    const s = dimStats[d];
+    const pct = Math.round(s.rate * 100);
+    if (s.rate < minRate) { minRate = s.rate; lowestDim = d; }
+
+    const card = document.createElement("div");
+    card.className = "dim-progress-card";
+    card.innerHTML = `
+      <div class="dim-p-title">
+        <span>${dimensionsData[d].icon} ${dimensionsData[d].name}</span>
+        <span>${pct}% (${s.cor}/${s.total})</span>
+      </div>
+      <div class="dim-bar-wrap">
+        <div class="dim-bar-inner" style="width:${pct}%;"></div>
+      </div>
+      <div class="dim-status-txt">
+        ${s.ans < s.total ? `⚠️ 尚有 ${s.total - s.ans} 題未作答` : '✅ 本向度已全數完成作答'}
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+
+  // 導師複習建議
+  const adviceDiv = document.getElementById("learning-advice");
+  if (totalAnswered === 0) {
+    adviceDiv.innerHTML = "您尚未開始作答，請點選上方【📂 核心素養分頁專區】開始挑戰！";
+  } else {
+    const targetDim = dimensionsData[lowestDim];
+    adviceDiv.innerHTML = `
+      根據答題數據，您在<b>【${targetDim.icon} 第 ${lowestDim} 素養向度：${targetDim.name}】</b>的答對率相對較低或未作答題目較多。<br>
+      👉 <b>強烈建議行動：</b>點擊回到「${targetDim.name}」分頁，仔細觀看圖解速記卡，並複習<b>${targetDim.keypoints[0]}</b>等核心概念！
+    `;
+  }
+
+  // 錯題清單彙整
+  const wrongListDiv = document.getElementById("wrong-list-container");
+  const wrongItems = [];
+  userAnswers.forEach((ans, idx) => {
+    if (ans !== null && ans !== allQuestions[idx].a) {
+      wrongItems.push({ idx, q: allQuestions[idx], userAns: ans });
+    }
+  });
+
+  if (wrongItems.length === 0) {
+    wrongListDiv.innerHTML = (totalAnswered === 0) ? "<p style='color:#666;'>尚無作答紀錄。</p>" : "<p style='color:#2e7d32; font-weight:bold;'>🎉 太厲害了！目前沒有任何錯題！</p>";
+  } else {
+    wrongListDiv.innerHTML = wrongItems.map(item => `
+      <div style="background:#fffaf0; border-left:4px solid #f44336; padding:12px 14px; margin-bottom:10px; border-radius:6px;">
+        <div style="font-weight:bold; color:#b71c1c; margin-bottom:4px;">
+          第 ${item.idx + 1} 題：${item.q.q}
+        </div>
+        <div style="font-size:0.92rem; color:#555; margin-bottom:4px;">
+          ❌ 您的選擇：<b>${item.q.opts[item.userAns]}</b> ｜ ✅ 正確解答：<b>${item.q.opts[item.q.a]}</b>
+        </div>
+        <div style="font-size:0.9rem; color:#2e7d32; background:#ffffff; padding:6px 10px; border-radius:6px; border:1px solid #e0e0e0;">
+          💡 <b>重點提醒：</b>${item.q.e}
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+// 重新測驗
+function resetAllQuiz() {
+  if (confirm("確定要重置所有答題紀錄重新挑戰嗎？")) {
+    userAnswers.fill(null);
+    updateProgressBadges();
+    renderDimensionView(currentDimId);
+    renderAllQuestionsView();
+    generateAssessmentReport();
+    switchDimension(1);
+    switchMainMode('dimension');
+  }
+}
+</script>
+
+</body>
+</html>
+"""
+
+# Let's save the interactive HTML file
+with open("01_國小自然3上_多采多姿的植物_六大素養分頁互動遊戲.html", "w", encoding="utf-8") as f:
+    f.write(html_code)
+
+print("HTML file generated successfully!")
